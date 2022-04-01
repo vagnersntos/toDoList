@@ -14,7 +14,48 @@ export class TarefaService {
   constructor(private httpClient: HttpClient) { }
 
   //headers
-  httpOption = {
+  httpOptions = {
     headers: new HttpHeaders({'Content-type': 'application/json'})
+  }
+
+  get():Observable<Tarefa[]>{
+    return this.httpClient.get<Tarefa[]>(this.url)
+      .pipe(
+        retry(2),
+        catchError(this.handleError))
+  }
+
+  save(Tarefa: Tarefa):Observable<Tarefa>{
+    return this.httpClient.post<Tarefa>(this.url, JSON.stringify(Tarefa), this.httpOptions)
+      .pipe(
+        retry(2),
+        catchError(this.handleError))
+  }
+
+  update(Tarefa: Tarefa):Observable<Tarefa>{
+    return this.httpClient.put<Tarefa>(this.url + '/' + Tarefa.id, JSON.stringify(Tarefa), this.httpOptions)
+      .pipe(
+        retry(2),
+        catchError(this.handleError))
+  }
+
+  delete(Tarefa: Tarefa){
+    return this.httpClient.delete<Tarefa>(this.url + '/' + Tarefa.id, this.httpOptions)
+    .pipe(
+      retry(1),
+      catchError(this.handleError)
+    )
+  }
+
+  handleError(error: HttpErrorResponse){
+    let errorMessage = '';
+    if(error.error instanceof ErrorEvent){
+      //Erro ocorreu do lado do client
+      errorMessage = `Erro do lado do client:${error.error.message}`;
+    } else {
+      //Erro que ocorreu do lado do servidor
+      errorMessage = `Código do erro: ${error.status}, mensagem: ${error.message}`;
+    }
+    return throwError(errorMessage);
   }
 }
